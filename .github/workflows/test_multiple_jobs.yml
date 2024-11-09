@@ -1,0 +1,38 @@
+name: GitHub Actions Demo2
+on: 
+  push: { branches: [main] }
+
+jobs:
+  get-runner:
+    name get a runner to use for this workflow
+    if: ${{ always() }}
+    runs-on: custom-runner
+    outputs:
+     RUNNER: ${{ runner.name }}
+    steps:
+      - run: echo "selected runner = ${{ runner.name }}"
+
+ other-job:
+    name: another job
+    needs: get-runner
+    runs-on: ${{needs.get-runner.outputs.RUNNER}}
+    output1: ${{ steps.step1.outputs.test }}
+    output2: ${{ steps.step2.outputs.test }}
+    steps:
+      - env:
+          OUTPUT1: ${{needs.get-runner.outputs.RUNNER}}
+        run: echo "$OUTPUT1"
+      - id: step1
+        run: echo "test=hello" >> "$GITHUB_OUTPUT"
+      - id: step2
+        run: echo "test=world" >> "$GITHUB_OUTPUT"
+        
+ other-job1:
+    name: another job1
+    needs: other-job
+    runs-on: ${{needs.get-runner.outputs.RUNNER}}
+    steps:
+      - env:
+          OUTPUT1: ${{needs.job1.outputs.output1}}
+          OUTPUT2: ${{needs.job1.outputs.output2}}
+        run: echo "$OUTPUT1 $OUTPUT2"
